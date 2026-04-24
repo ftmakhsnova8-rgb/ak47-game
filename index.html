@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AK-47 Mobile Battle</title>
+    <style>
+        body { margin: 0; background: #222; overflow: hidden; font-family: sans-serif; touch-action: none; }
+        canvas { display: block; background: #444; }
+        #ui {
+            position: absolute; top: 10px; left: 10px; color: white;
+            padding: 8px; background: rgba(0,0,0,0.6); pointer-events: none; border-radius: 5px;
+        }
+        #controls {
+            position: absolute; bottom: 30px; width: 100%;
+            display: flex; justify-content: space-between; padding: 0 40px; box-sizing: border-box;
+        }
+        .joystick-base {
+            width: 120px; height: 120px; background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; position: relative;
+        }
+        #stick {
+            width: 60px; height: 60px; background: rgba(255,255,255,0.4);
+            border-radius: 50%; position: absolute; top: 30px; left: 30px;
+        }
+        #shootBtn {
+            width: 90px; height: 90px; background: rgba(255,0,0,0.5);
+            border: 3px solid white; border-radius: 50%; display: flex; 
+            justify-content: center; align-items: center;
+            color: white; font-weight: bold; font-size: 20px; user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">HP: <span id="hp">100</span> | Kills: <span id="kills">0</span></div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="controls">
+        <div class="joystick-base" id="joyBase"><div id="stick"></div></div>
+        <div id="shootBtn">FIRE</div>
+    </div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let score = 0;
+const bullets = [];
+const enemies = [];
+const walls = [];
+
+for(let i=0; i<12; i++) {
+    walls.push({
+        x: Math.random() * (canvas.width - 60),
+        y: Math.random() * (canvas.height - 60),
+        w: 50 + Math.random() * 80,
+        h: 50 + Math.random() * 80
+    });
+}
+
+const player = { x: canvas.width/2, y: canvas.height/2, size: 15, hp: 100, speed: 4, color: "#3498db" };
+
+function spawnEnemies() {
+    for(let i=0; i<9; i++) {
+        enemies.push({
+            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+            size: 15, hp: 40, speed: 1.5, color: "#e74c3c", lastShot: 0
+        });
+    }
+}
+spawnEnemies();
+
+let moveX = 0, moveY = 0;
+const stick = document.getElementById("stick");
+const joyBase = document.getElementById("joyBase");
+
+joyBase.addEventListener('touchstart', handleMove);
+joyBase.addEventListener('touchmove', handleMove);
+function handleMove(e) {
+    const touch = e.touches[0];
+    const rect = joyBase.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    let dx = touch.clientX - centerX;
+    let dy = touch.clientY - centerY;
+    const distance = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+    const angle = Math.atan2(dy, dx);
+    moveX = Math.cos(angle) * (distance / 50);
+    moveY = Math.sin(angle) * (distance / 50);
+    stick.style.transform = `translate(${Math.cos(angle)*
